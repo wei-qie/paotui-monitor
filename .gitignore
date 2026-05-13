@@ -1,0 +1,10 @@
+config.json
+.claude/
+venv/
+.idea/
+__pycache__/
+*.pyc
+dump_urls.py
+alerter.py
+run_monitor.py
+start_monitor.bat
