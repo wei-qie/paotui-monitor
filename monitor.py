@@ -147,7 +147,7 @@ def check_and_alert(task):
     remark = (task.get("task_remark", "") or "")
     text = title + " " + remark
 
-    if price > 70:
+    if price >= 65:
         print(f"[!!!] 高价单! ¥{price} - {title}")
         alert(task)
         return
