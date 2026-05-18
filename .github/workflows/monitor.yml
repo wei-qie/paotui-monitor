@@ -2,7 +2,7 @@ name: 跑腿派单监控
 
 on:
   schedule:
-    - cron: '*/20 * * * *'    # 每 20 分钟运行一次
+    - cron: '*/5 * * * *'    # 每 20 分钟运行一次
   workflow_dispatch:           # 支持手动触发
 
 jobs:
