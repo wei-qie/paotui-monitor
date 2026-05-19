@@ -2,7 +2,7 @@ name: 跑腿派单监控
 
 on:
   schedule:
-    - cron: '*/5 * * * *'    # 每 20 分钟运行一次
+    - cron: '*/5 * * * *'    # 每 5 分钟运行一次
   workflow_dispatch:           # 支持手动触发
 
 jobs:
@@ -27,6 +27,7 @@ jobs:
         run: python monitor.py
 
       - name: Commit notified tasks
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -37,6 +38,7 @@ jobs:
             if git diff --cached --quiet; then
               echo "没有新通知记录，跳过提交"
             else
+              git pull --rebase
               git commit -m "update notified tasks [skip ci]"
               git push
             fi
