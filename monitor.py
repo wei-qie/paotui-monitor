@@ -7,6 +7,7 @@ import time
 import os
 import smtplib
 import email.mime.text
+from datetime import datetime, timedelta, timezone
 import requests
 import urllib3
 
@@ -134,6 +135,19 @@ def alert(task):
     save_notified(tid)
 
 
+def is_recent(post_time_str, max_minutes=30):
+    """判断订单发布时间是否在最近 N 分钟内"""
+    if not post_time_str:
+        return False
+    try:
+        post = datetime.strptime(post_time_str, "%Y-%m-%d %H:%M:%S")
+        post = post.replace(tzinfo=timezone(timedelta(hours=8)))  # API 返回北京时间
+        now = datetime.now(timezone.utc)
+        return now - post <= timedelta(minutes=max_minutes)
+    except ValueError:
+        return False
+
+
 def check_and_alert(task):
     try:
         price = float(task.get("pay_price", 0) or 0)
@@ -143,38 +157,25 @@ def check_and_alert(task):
     title = (task.get("title", "") or "")
     text = title + " " + (task.get("task_remark", "") or "")
 
-    # ========== 临时：一有新单就提醒（2026-05-27） ==========
-    # 后续恢复筛选逻辑时，删掉下面这行，取消后面代码的注释即可
-    pass  # 临时放行所有订单
+    if task.get("task_status_text", "") != "待接单":
+        return
+    if price < MIN_PRICE:
+        return
+    if not is_recent(task.get("post_time", ""), 30):
+        return
 
-    # ========== 原筛选逻辑（已注释） ==========
-    # if task.get("task_status_text", "") != "待接单":
-    #     return
-    #
+    # ========== 原筛选逻辑（已注释，临时启用全量提醒）==========
     # if price >= 65:
     #     print(f"[!!!] 高价单! ¥{price} - {title}")
     #     alert(task)
     #     return
-    #
-    # if price <= MIN_PRICE:
-    #     return
-    #
     # if "跑步" in text or "km" in text.lower():
     #     return
-    #
     # keywords = ["代打卡", "打卡", "代签到", "签到"]
     # has_keyword = any(kw in text for kw in keywords)
     # has_count = bool(re.search(r'\d+次', text))
     # if not (has_keyword or has_count):
     #     return
-    #
-    # print(f"[!!!] 高价单! ¥{price} - {title}")
-    # alert(task)
-
-    if task.get("task_status_text", "") != "待接单":
-        return
-    if price < MIN_PRICE:
-        return
 
     print(f"[!!!] 新单! ¥{price} - {title}")
     alert(task)
