@@ -166,7 +166,7 @@ def check_and_alert(task):
         return
     if price < MIN_PRICE:
         return
-    if not is_recent(task.get("post_time", ""), 30):
+    if not is_recent(task.get("post_time", ""), 10):
         return
 
     # ========== 原筛选逻辑（已注释，临时启用全量提醒）==========
