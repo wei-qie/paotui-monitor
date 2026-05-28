@@ -140,9 +140,14 @@ def is_recent(post_time_str, max_minutes=30):
     if not post_time_str:
         return False
     try:
-        post = datetime.strptime(post_time_str, "%Y-%m-%d %H:%M:%S")
-        post = post.replace(tzinfo=timezone(timedelta(hours=8)))  # API 返回北京时间
-        now = datetime.now(timezone.utc)
+        # API 返回格式: "05-28 09:01"（无年份）或 "2026-05-28 09:01:00"
+        try:
+            post = datetime.strptime(post_time_str, "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            post = datetime.strptime(post_time_str, "%m-%d %H:%M")
+            post = post.replace(year=datetime.now().year)
+        now = datetime.now(timezone(timedelta(hours=8)))
+        post = post.replace(tzinfo=timezone(timedelta(hours=8)))
         return now - post <= timedelta(minutes=max_minutes)
     except ValueError:
         return False
